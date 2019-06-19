@@ -1,0 +1,6 @@
+securitytypes=vncauth,tlsvnc
+desktop=sandbox
+geometry=1200x700
+dpi=96
+alwaysshared
+fg

@@ -1,0 +1,17 @@
+version: "3.7"
+services:
+  minerl-gpu:
+    image: ml-jku/minerl-gpu
+    container_name: ${CONTAINER_NAME}
+    build:
+      context: tools/docker
+      dockerfile: tools/docker/vnc.dockerfile
+    environment:
+      - VNC_PW=${VNC_PW}
+    ports:
+      - ${PTVSD}:5678 # VSCode Python Debugger
+      - ${VNC}:5901 # VNC
+      - ${JUPYTER}:8888 # JupyterLab
+    volumes:
+      - ./tools/docker/resources/jupyter/jupyter_notebook_config.py:/home/ml/.jupyter/jupyter_notebook_config.py
+      - ./tools/docker/resources/config/xfce4:/home/ml/.config/xfce4
