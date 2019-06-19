@@ -3,6 +3,7 @@
 NeurIPS 2019 : MineRL Competition
 The MineRL Competition for Sample-Efficient Reinforcement Learning
 https://www.aicrowd.com/challenges/neurips-2019-minerl-competition#abstract
+Competition repository: https://github.com/minerllabs/minerl
 
 ## How to contribute
 Open tasks are listed as open issues in the [todo section](https://git.bioinf.jku.at/minerl/minerl-neurips-2019/boards)
