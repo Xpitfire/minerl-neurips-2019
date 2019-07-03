@@ -1,5 +1,6 @@
 import gym
 import minerl
+import cv2
 import os
 import monitor
 import global_params
@@ -12,6 +13,19 @@ args.enable_logging = False
 logger = monitor.Logger(args)
 # Define current environment name
 env_name = "MineRLTreechop-v0"
+video_name = 'video.avi'
+
+
+def write_video(obs):
+    height, width, layers = obs['pov'][0].shape
+    video = cv2.VideoWriter(video_name, 0, 1, (width, height))
+
+    for i, o in enumerate(obs['pov']):
+        if i % 5 == 0:
+            video.write(o)
+
+    cv2.destroyAllWindows()
+    video.release()
 
 
 def create_env(env_n):
@@ -35,10 +49,11 @@ def load_expert_episode(env_n):
 
 
 def replay_expert_episode(data):
-    # Iterate through a single epoch gathering sequences of at most 32 steps
-    for obs, rew, done, act in data.seq_iter(num_epochs=1, max_sequence_len=32):
-        print(act)
+    # Iterate through a single epoch gathering sequences of at most n steps
+    for obs, rew, done, act in data.seq_iter(num_epochs=1, max_sequence_len=64):
         # Do something
+        write_video(obs)
+        break
 
 
 episode_data = load_expert_episode(env_name)
