@@ -2,7 +2,10 @@ from setuptools import find_packages, setup
 
 readme = open("README.md").read()
 
-requirements = {"install": ["ffmpeg", "PyHamcrest"]}
+requirements = {"install": ["ffmpeg", "PyHamcrest", "coloredlogs",
+                            "tqdm", "natsort", "numpy", "torch", "torchvision",
+                            "sklearn", "matplotlib", "seaborn", "pandas",
+                            "gym", "imageio", "minerl", "keyboard"]}
 install_requires = requirements["install"]
 
 setup(
