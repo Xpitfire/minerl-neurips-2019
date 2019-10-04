@@ -4,10 +4,6 @@ import os
 import minerl
 
 
-means = np.array([0.485, 0.456, 0.406])[..., np.newaxis, np.newaxis]
-std = np.array([0.229, 0.224, 0.225])[..., np.newaxis, np.newaxis]
-
-
 def load_data(data_dir, env_name, force_download, **kwargs):
     if not os.path.exists(data_dir):
         pathlib.Path(data_dir).mkdir(parents=True, exist_ok=True)
@@ -16,11 +12,12 @@ def load_data(data_dir, env_name, force_download, **kwargs):
     return minerl.data.make(env_name, data_dir=data_dir, num_workers=1)
 
 
-def data_wrapper(dataloader, trans):
+def data_wrapper(dataloader):
     def wrapper(epochs, batch_size, seed, sequence_len, add_noop=False):
         states = []
         actions = []
         cameras = []
+        rewards = []
 
         batch_cnt = 0
 
@@ -31,7 +28,7 @@ def data_wrapper(dataloader, trans):
             if np.shape(obs['pov'])[0] != sequence_len:
                 continue
             # swap RGB channel for conv layers
-            s = trans(obs['pov'])
+            s = transforms(obs['pov'])
             states.append(s)
             attack = action['attack'][..., np.newaxis]
             a = np.concatenate((attack,
@@ -52,27 +49,44 @@ def data_wrapper(dataloader, trans):
             # create batches
             actions.append(a)
             cameras.append(action['camera'])
+            rewards.append(reward)
             batch_cnt += 1
             if batch_cnt == batch_size:
+                # redistribute the reward to the last instance
                 yield np.stack(states, axis=0).astype(np.float32), \
                       np.stack(actions, axis=0).astype(np.float32), \
-                      np.stack(cameras, axis=0).astype(np.float32)
+                      np.stack(cameras, axis=0).astype(np.float32), \
+                      np.stack(rewards, axis=0).astype(np.float32)[..., np.newaxis]
                 batch_cnt = 0
                 states = []
                 actions = []
                 cameras = []
-
+                rewards = []
+        # redistribute the reward to the last instance
         yield np.stack(states, axis=0).astype(np.float32), \
               np.stack(actions, axis=0).astype(np.float32), \
-              np.stack(cameras, axis=0).astype(np.float32)
+              np.stack(cameras, axis=0).astype(np.float32), \
+              np.stack(rewards, axis=0).astype(np.float32)[..., np.newaxis]
     return wrapper
 
 
+def value_transforms(rewards):
+    new_rewards = []
+    for r_seq in rewards:
+        new_reward_seq = []
+        for i, r in enumerate(r_seq):
+            tmp = []
+            for _ in range(i):
+                tmp.append(0.0)
+            for j in range(len(r_seq)-i):
+                tmp.append(r * 0.9**(j+1))
+            new_reward_seq.append(tmp)
+        new_rewards.append(np.sum(np.array(new_reward_seq), axis=0) + np.array(r_seq))
+    return new_rewards
+
+
 def transforms(obs):
-    x = obs.transpose(0, 3, 1, 2)
-    # use ImageNet statistics to normalize image
-    x = x / 255.
-    for i in range(np.shape(x)[0]):
-        x[i] = x[i] - means
-        x[i] = x[i] / std
+    x = obs.transpose(0, 3, 1, 2).astype(dtype=np.float)
+    x /= 255.
     return x
+

@@ -2,8 +2,8 @@ import torch
 import gym
 import os
 import numpy as np
-from src.utils import VideoRecorder
-from src.data import transforms
+from src.common.recorder import VideoRecorder
+from src.common.data import transforms
 from torch.distributions import Bernoulli
 
 
@@ -32,6 +32,7 @@ class Agent:
         self.state_history = None
         self.noop = None
         self.reward = None
+        self.value = None
         self.single_reset = None
         self.obs = None
 
@@ -41,6 +42,7 @@ class Agent:
         state = transforms(self.obs['pov'][np.newaxis, ...])
         self.state_history = [state] * self.sequence_len
         self.reward = 0.0
+        self.value = 0.0
         self.done = False
 
     def _get_state_history_tensor(self, state):
@@ -49,7 +51,7 @@ class Agent:
         return torch.from_numpy(arr).float().to(self.device)
 
     def _build_action(self, preds):
-        action_pred, camera_pred = preds
+        action_pred, camera_pred, value_pred = preds
 
         # set action predictions
         action_probs = torch.sigmoid(action_pred)
@@ -68,7 +70,7 @@ class Agent:
         # set camera predictions
         cam = camera_pred.squeeze().detach().cpu().numpy()
         template['camera'] = [cam[0], cam[1]]
-        return template
+        return template, (action_pred, camera_pred, value_pred, actions)
 
     def act(self, state):
         inputs = self._get_state_history_tensor(state)
@@ -82,21 +84,24 @@ class Agent:
         steps = 0
         if self.obs is None or self.repeated_reset or self.done:
             self.reset()
-            recorder.append_frame(self.obs['pov'])
 
         while not self.done:
             state = transforms(self.obs['pov'][np.newaxis, ...])
-            action = self.act(state)
-            print('Send action:', action)
+            action, preds = self.act(state)
+            _, _, values, action_binaries = preds
             obs, reward, done, info = self.env.step(action)
             self.obs = obs
             self.done = done
             self.reward += reward
+            self.value = np.mean(values.detach().cpu().numpy())
             self.env.render()
+
+            recorder.append_action_binaries(action_binaries)
+            recorder.append_value(str(self.value))
             recorder.append_frame(self.obs['pov'])
 
             steps += 1
             if max_agent_steps is not None and steps >= max_agent_steps:
                 self.done = True
 
-        recorder.write(self.reward)
+        recorder.write('rew-{}_value-{}'.format(self.reward, self.value))

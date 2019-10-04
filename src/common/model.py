@@ -72,6 +72,19 @@ class CameraNet(torch.nn.Module):
         return self.final(x)
 
 
+class ValueNet(torch.nn.Module):
+    def __init__(self, lstm_hidden_dim, value_out_dim, **kwargs):
+        super(ValueNet, self).__init__()
+        self.device = kwargs['device']
+
+        self.out_dim = value_out_dim
+        self.hidden_dim = lstm_hidden_dim
+        self.final = torch.nn.Linear(self.hidden_dim, self.out_dim).to(self.device)
+
+    def forward(self, x):
+        return self.final(x)
+
+
 class Net(torch.nn.Module):
     def __init__(self, **kwargs):
         super(Net, self).__init__()
@@ -79,10 +92,12 @@ class Net(torch.nn.Module):
         self.cnn_lstm = CnnLstmNet(self.cnn, **kwargs.copy())
         self.action_net = ActionNet(**kwargs.copy())
         self.camera_net = CameraNet(**kwargs.copy())
+        self.value_net = ValueNet(**kwargs.copy())
 
     def forward(self, x):
         h, _ = self.cnn_lstm(x)
         h = h[:, -1, ...]
         action_out = self.action_net(h)
         camera_out = self.camera_net(h)
-        return action_out, camera_out
+        value_out = self.value_net(h)
+        return action_out, camera_out, value_out

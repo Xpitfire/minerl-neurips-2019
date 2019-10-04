@@ -4,9 +4,9 @@ import os
 import json
 import pathlib
 import traceback
-from src.config import Config
-from src.utils import get_device
-from src.runner import run
+from src.common.config import Config
+from src.bc.utils import get_device
+from src.bc.runner import run
 
 
 if __name__ == "__main__":

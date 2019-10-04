@@ -7,7 +7,7 @@ Default configuration settings
 """
 import json
 import os
-from src.misc import parse_args, import_object, dotdict, extract_named_args, try_to_number_or_bool
+from src.common.misc import parse_args, import_object, dotdict, extract_named_args, try_to_number_or_bool
 
 
 class Config(object):
