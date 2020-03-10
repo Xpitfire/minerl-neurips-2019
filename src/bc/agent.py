@@ -21,7 +21,7 @@ def build_agent(render_env=None, render=None, seed=None, **kwargs):
 
 
 class Agent:
-    def __init__(self, env, sequence_len=None, repeated_env_reset=None, device=None, **kwargs):
+    def __init__(self, env, sequence_len=None, repeated_env_reset=None, device=None):
         self.env = env
         self.sequence_len = sequence_len
         self.device = device

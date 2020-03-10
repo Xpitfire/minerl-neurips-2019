@@ -1,15 +1,16 @@
 import torch
+from lighter.decorator import config, device
 
 
 class CnnNet(torch.nn.Module):
-    def __init__(self, **kwargs):
+    @device
+    def __init__(self, config):
         super(CnnNet, self).__init__()
-        self.device = kwargs['device']
-
+        self.config = config
         self.conv1 = torch.nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=0).to(self.device)
-        self.conv2 = torch.nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=0).to(self.device)
-        self.conv3 = torch.nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=0).to(self.device)
-        self.conv4 = torch.nn.Conv2d(128, 64, kernel_size=3, stride=2, padding=0).to(self.device)
+        self.conv2 = torch.nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=0).to(self.device)
+        self.conv3 = torch.nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=0).to(self.device)
+        self.conv4 = torch.nn.Conv2d(64, 64, kernel_size=3, stride=2, padding=0).to(self.device)
         self.phi = torch.relu
 
     def forward(self, x):
@@ -21,14 +22,14 @@ class CnnNet(torch.nn.Module):
 
 
 class CnnLstmNet(torch.nn.Module):
-    def __init__(self, cnn, lstm_hidden_dim, lstm_layer_dim, **kwargs):
+    @device
+    def __init__(self, cnn, config):
         super(CnnLstmNet, self).__init__()
-        self.device = kwargs['device']
-
+        self.config = config
         self.in_dim = 576
         self.cnn = cnn
-        self.hidden_dim = lstm_hidden_dim
-        self.layer_dim = lstm_layer_dim
+        self.hidden_dim = self.config.lstm_hidden_dim
+        self.layer_dim = self.config.lstm_layer_dim
         self.lstm = torch.nn.LSTM(self.in_dim, self.hidden_dim, self.layer_dim,
                                   batch_first=True, dropout=0.5).to(self.device)
 
@@ -47,12 +48,12 @@ class CnnLstmNet(torch.nn.Module):
 
 
 class ActionNet(torch.nn.Module):
-    def __init__(self, lstm_hidden_dim, action_out_dim, **kwargs):
+    @device
+    def __init__(self, config):
         super(ActionNet, self).__init__()
-        self.device = kwargs['device']
-
-        self.out_dim = action_out_dim
-        self.hidden_dim = lstm_hidden_dim
+        self.config = config
+        self.out_dim = self.config.action_out_dim
+        self.hidden_dim = self.config.lstm_hidden_dim
         self.final = torch.nn.Linear(self.hidden_dim, self.out_dim).to(self.device)
 
     def forward(self, x):
@@ -60,12 +61,12 @@ class ActionNet(torch.nn.Module):
 
 
 class CameraNet(torch.nn.Module):
-    def __init__(self, lstm_hidden_dim, camera_out_dim, **kwargs):
+    @device
+    def __init__(self, config):
         super(CameraNet, self).__init__()
-        self.device = kwargs['device']
-
-        self.out_dim = camera_out_dim
-        self.hidden_dim = lstm_hidden_dim
+        self.config = config
+        self.out_dim = self.config.camera_out_dim
+        self.hidden_dim = self.config.lstm_hidden_dim
         self.final = torch.nn.Linear(self.hidden_dim, self.out_dim).to(self.device)
 
     def forward(self, x):
@@ -73,12 +74,12 @@ class CameraNet(torch.nn.Module):
 
 
 class ValueNet(torch.nn.Module):
-    def __init__(self, lstm_hidden_dim, value_out_dim, **kwargs):
+    @device
+    def __init__(self, config):
         super(ValueNet, self).__init__()
-        self.device = kwargs['device']
-
-        self.out_dim = value_out_dim
-        self.hidden_dim = lstm_hidden_dim
+        self.config = config
+        self.out_dim = self.config.value_out_dim
+        self.hidden_dim = self.config.lstm_hidden_dim
         self.final = torch.nn.Linear(self.hidden_dim, self.out_dim).to(self.device)
 
     def forward(self, x):
@@ -86,13 +87,16 @@ class ValueNet(torch.nn.Module):
 
 
 class Net(torch.nn.Module):
-    def __init__(self, **kwargs):
+    @device
+    @config(path="configs/config.model.json")
+    def __init__(self):
         super(Net, self).__init__()
-        self.cnn = CnnNet(**kwargs.copy())
-        self.cnn_lstm = CnnLstmNet(self.cnn, **kwargs.copy())
-        self.action_net = ActionNet(**kwargs.copy())
-        self.camera_net = CameraNet(**kwargs.copy())
-        self.value_net = ValueNet(**kwargs.copy())
+        self.cnn = CnnNet()
+        self.cnn_lstm = CnnLstmNet(self.cnn,
+                                   self.config)
+        self.action_net = ActionNet(self.config)
+        self.camera_net = CameraNet(self.config)
+        self.value_net = ValueNet(self.config)
 
     def forward(self, x):
         h, _ = self.cnn_lstm(x)
