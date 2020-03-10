@@ -126,7 +126,7 @@ class Runner:
 
         stats.print_val_stats()
 
-    def run(self, epochs, run_mode, batch_size, grad_clip, seed=None):
+    def run(self, epochs, run_mode, batch_size, grad_clip, seed=None, **kwargs):
         only_env_seed = self.config.only_env_seed
         set_seeds(seed, only_env_seed)
         # assign local variable to avoid kwargs pop
