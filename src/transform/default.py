@@ -10,14 +10,14 @@ class Transform(object):
     def __init__(self):
         self.input_dim = self.config.settings.model.input_dim
         self.craft_mapping = {
-            0: "none",
+            0: 0,
             1: "torch",
             2: "stick",
             3: "planks",
             4: "crafting_table"
         }
         self.equip_mapping = {
-            0: "none",
+            0: 0,
             1: "air",
             2: "wooden_axe",
             3: "wooden_pickaxe",
@@ -27,7 +27,7 @@ class Transform(object):
             7: "iron_pickaxe"
         }
         self.nearbyCraft_mapping = {
-            0: "none",
+            0: 0,
             1: "wooden_axe",
             2: "wooden_pickaxe",
             3: "stone_axe",
@@ -37,12 +37,12 @@ class Transform(object):
             7: "furnace"
         }
         self.nearbySmelt_mapping = {
-            0: "none",
+            0: 0,
             1: "iron_ingot",
             2: "coal"
         }
         self.place_mapping = {
-            0: "none",
+            0: 0,
             1: "dirt",
             2: "stone",
             3: "cobblestone",
@@ -56,7 +56,8 @@ class Transform(object):
 
     def prepare_for_env(self, output_dict, noops):
         for i in range(self.config.settings.env.poolsize):
-            noops[i]['camera'] = output_dict['camera'][i].detach().cpu().numpy(),
+            camera = output_dict['camera'][i].detach().cpu().numpy().squeeze()
+            noops[i]['camera'] = [camera[0], camera[1]]
             noops[i]['attack'] = int(output_dict['move'][i][0].item())
             noops[i]['forward'] = int(output_dict['move'][i][1].item())
             noops[i]['back'] = int(output_dict['move'][i][2].item())
@@ -118,6 +119,7 @@ class Transform(object):
             white = (255,)
 
             inventory = obs['inventory']
+
             draw.text((0, 0), "{}".format(inventory['coal'][i]), white, font=font)
             draw.text((16, 0), "{}".format(inventory['cobblestone'][i]), white, font=font)
             draw.text((32, 0), "{}".format(inventory['crafting_table'][i]), white, font=font)

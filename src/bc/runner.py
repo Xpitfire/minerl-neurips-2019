@@ -23,7 +23,7 @@ class Runner(object):
         self.model.to(self.device)
         for e in tqdm(range(self.config.settings.bc.epochs)):
             self.model.train()
-            for _ in range(self.config.settings.bc.batches):
+            for _ in range(self.config.settings.bc.iterations):
                 batch = self.generator.sample()
                 pred = self.model.act(batch['obs'])
                 evaluation = self.model.evaluate(batch['obs'], batch['actions'])

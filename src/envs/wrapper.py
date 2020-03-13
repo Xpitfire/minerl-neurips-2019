@@ -145,7 +145,7 @@ class VecEnv(object):
         return [delegate() for _ in range(self.poolsize)]
 
     def noops(self):
-        return [self.action_space.noop() for _ in range(self.poolsize)]
+        return [self.envs[0].action_space.noop() for _ in range(self.poolsize)]
 
 
 class EnvWrapper(object):

@@ -23,6 +23,8 @@ class DataGenerator(object):
         rewards = []
         for i in range(self.batch_size):
             state, action, reward, next_state, done = next(self.generator)
+            if len(done) < self.seq_len:
+                continue
             o = self.transform.preprocess_states(state)
             o = self.transform.normalize_state(o)
             o = self.transform.reshape_states(o)
