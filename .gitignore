@@ -224,3 +224,4 @@ dmypy.json
 # exclude logs
 runs/
 logs/
+/video0/
