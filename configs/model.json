@@ -8,7 +8,7 @@
   "critic_hidden_dim": 256,
   "critic_final_dim": 1,
   "actor_hidden_dim": 256,
-  "actor_camera_final_dim": 2,
+  "actor_camera_final_dim": 11,
   "actor_move_final_dim": 8,
   "actor_craft_final_dim": 5,
   "actor_equip_final_dim": 8,

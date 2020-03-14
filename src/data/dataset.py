@@ -29,7 +29,9 @@ class DataGenerator(object):
             o = self.transform.normalize_state(o)
             o = self.transform.reshape_states(o)
             states.append(o)
-            actions.append(action)
+
+            a = self.transform.discretize_camera(action)
+            actions.append(a)
             rewards.append(reward)
 
         obs = torch.from_numpy(np.stack(states, axis=0)).to(self.device)[:, :-1, ...]

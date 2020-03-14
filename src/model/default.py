@@ -4,7 +4,6 @@ import torch.nn as nn
 from lighter.nn import DynLayerNorm
 from lighter.decorator import context, device
 from torch.distributions import Categorical, Normal, Bernoulli
-import torch.nn.functional as F
 from datetime import datetime
 
 
@@ -82,11 +81,9 @@ class ActorNet(nn.Module):
             DynLayerNorm(),
             nn.ReLU()
         )
-        self.camera_mu = nn.Linear(self.config.settings.model.actor_hidden_dim,
-                                   self.config.settings.model.actor_camera_final_dim)
-        self.camera_sigma = nn.Linear(self.config.settings.model.actor_hidden_dim,
-                                      self.config.settings.model.actor_camera_final_dim)
-
+        self.camera_final_dim = self.config.settings.model.actor_camera_final_dim
+        self.camera = nn.Linear(self.config.settings.model.actor_hidden_dim,
+                                self.camera_final_dim*2)
         self.move = nn.Linear(self.config.settings.model.actor_hidden_dim,
                               self.config.settings.model.actor_move_final_dim)
         self.craft = nn.Linear(self.config.settings.model.actor_hidden_dim,
@@ -103,8 +100,9 @@ class ActorNet(nn.Module):
     def forward(self, x):
         h = self.linear(x)
 
-        camera_mu = self.camera_mu(h)
-        camera_sigma = F.softplus(self.camera_sigma(h)) + 1e-5
+        c = self.camera(h)
+        camera1_probs = torch.softmax(c[:, :self.camera_final_dim], dim=-1)
+        camera2_probs = torch.softmax(c[:, self.camera_final_dim:], dim=-1)
         move_probs = torch.sigmoid(self.move(h))
         craft_probs = torch.softmax(self.craft(h), dim=-1)
         equip_probs = torch.softmax(self.equip(h), dim=-1)
@@ -113,8 +111,8 @@ class ActorNet(nn.Module):
         nearbySmelt_probs = torch.softmax(self.nearbySmelt(h), dim=-1)
 
         return {
-            'camera_mu': camera_mu,
-            'camera_sigma': camera_sigma,
+            'camera1': camera1_probs,
+            'camera2': camera2_probs,
             'move': move_probs,
             'craft': craft_probs,
             'equip': equip_probs,
@@ -154,9 +152,13 @@ class Net(nn.Module):
         h = self.shared(state)[0][:, -1, ...]
         probs_dict = self.actor(h)
 
-        camera_dist = Normal(loc=probs_dict['camera_mu'], scale=probs_dict['camera_sigma'])
-        camera_action = camera_dist.sample()
-        camera_log_probs = camera_dist.log_prob(camera_action)
+        camera1_dist = Categorical(probs=probs_dict['camera1'])
+        camera1_action = camera1_dist.sample()
+        camera1_log_probs = camera1_dist.log_prob(camera1_action)
+
+        camera2_dist = Categorical(probs=probs_dict['camera2'])
+        camera2_action = camera2_dist.sample()
+        camera2_log_probs = camera2_dist.log_prob(camera2_action)
 
         move_dist = Bernoulli(probs=probs_dict['move'])
         move_action = move_dist.sample()
@@ -183,29 +185,43 @@ class Net(nn.Module):
         nearbySmelt_log_probs = nearbySmelt_dist.log_prob(nearbySmelt_action)
 
         return {
-            'camera': camera_action,
-            'camera_log_probs': camera_log_probs,
+            'camera1': camera1_action,
+            'camera1_log_probs': camera1_log_probs,
+            'camera1_net_out': probs_dict['camera1'],
+            'camera2': camera2_action,
+            'camera2_log_probs': camera2_log_probs,
+            'camera2_net_out': probs_dict['camera2'],
             'move': move_action,
             'move_log_probs': move_log_probs,
+            'move_net_out': probs_dict['move'],
             'craft': craft_action,
             'craft_log_probs': craft_log_probs,
+            'craft_net_out': probs_dict['craft'],
             'equip': equip_action,
             'equip_log_probs': equip_log_probs,
+            'equip_net_out': probs_dict['equip'],
             'place': place_action,
             'place_log_probs': place_log_probs,
+            'place_net_out': probs_dict['place'],
             'nearbyCraft': nearbyCraft_action,
             'nearbyCraft_log_probs': nearbyCraft_log_probs,
+            'nearbyCraft_net_out': probs_dict['nearbyCraft'],
             'nearbySmelt': nearbySmelt_action,
-            'nearbySmelt_log_probs': nearbySmelt_log_probs
+            'nearbySmelt_log_probs': nearbySmelt_log_probs,
+            'nearbySmelt_net_out': probs_dict['nearbySmelt'],
         }
 
     def evaluate(self, state, action):
         h = self.shared(state)[0][:, -1, ...]
         probs_dict = self.actor(h)
 
-        camera_dist = Normal(loc=probs_dict['camera_mu'], scale=probs_dict['camera_sigma'])
-        camera_log_probs = camera_dist.log_prob(action['camera'])
-        camera_entropy = camera_dist.entropy()
+        camera1_dist = Categorical(probs=probs_dict['camera1'])
+        camera1_log_probs = camera1_dist.log_prob(action['camera1'])
+        camera1_entropy = camera1_dist.entropy()
+
+        camera2_dist = Categorical(probs=probs_dict['camera2'])
+        camera2_log_probs = camera2_dist.log_prob(action['camera2'])
+        camera2_entropy = camera2_dist.entropy()
 
         move_dist = Bernoulli(probs=probs_dict['move'])
         move_log_probs = move_dist.log_prob(action['move'])
@@ -232,28 +248,39 @@ class Net(nn.Module):
         nearbySmelt_entropy = nearbySmelt_dist.entropy()
 
         return {
-            'camera': action['camera'],
-            'camera_log_probs': camera_log_probs,
-            'camera_entropy': camera_entropy,
+            'camera1': action['camera1'],
+            'camera1_log_probs': camera1_log_probs,
+            'camera1_entropy': camera1_entropy,
+            'camera1_net_out': probs_dict['camera1'],
+            'camera2': action['camera2'],
+            'camera2_log_probs': camera2_log_probs,
+            'camera2_entropy': camera2_entropy,
+            'camera2_net_out': probs_dict['camera2'],
             'move': action['move'],
             'move_log_probs': move_log_probs,
             'move_entropy': move_entropy,
+            'move_net_out': probs_dict['move'],
             'craft': action['craft'],
             'craft_log_probs': craft_log_probs,
             'craft_entropy': craft_entropy,
+            'craft_net_out': probs_dict['craft'],
             'equip': action['equip'],
             'equip_log_probs': equip_log_probs,
             'equip_entropy': equip_entropy,
+            'equip_net_out': probs_dict['equip'],
             'place': action['place'],
             'place_log_probs': place_log_probs,
             'place_entropy': place_entropy,
+            'place_net_out': probs_dict['place'],
             'nearbyCraft': action['nearbyCraft'],
             'nearbyCraft_log_probs': nearbyCraft_log_probs,
             'nearbyCraft_entropy': nearbyCraft_entropy,
+            'nearbyCraft_net_out': probs_dict['nearbyCraft'],
             'nearbySmelt': action['nearbySmelt'],
             'nearbySmelt_log_probs': nearbySmelt_log_probs,
             'nearbySmelt_entropy': nearbySmelt_entropy,
-            'values': self.critic(h)
+            'nearbySmelt_net_out': probs_dict['nearbySmelt'],
+            'value': self.critic(h)
         }
 
     def forward(self, x):

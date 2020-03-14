@@ -50,14 +50,29 @@ class Transform(object):
             5: "furnace",
             6: "torch"
         }
+        self.camera_mapping = {
+            0: -10.0,
+            1: -7.0,
+            2: -4.0,
+            3: -2.0,
+            4: -1.0,
+            5: 0.0,
+            6: 1.0,
+            7: 2.0,
+            8: 4.0,
+            9: 7.0,
+            10: 10.0
+        }
+        self.bins = np.array([-np.inf, -10.0, -7.0, -4.0, -2.0, -1.0, 1.0, 2.0, 4.0, 7.0, 10.0, np.inf])
 
     def prepare_for_model(self, x):
         return torch.from_numpy(np.stack(x, axis=0)).to(self.device)
 
     def prepare_for_env(self, output_dict, noops):
         for i in range(self.config.settings.env.poolsize):
-            camera = output_dict['camera'][i].detach().cpu().numpy().squeeze()
-            noops[i]['camera'] = [camera[0], camera[1]]
+            camera1 = self.camera_mapping[output_dict['camera1'][i].item()]
+            camera2 = self.camera_mapping[output_dict['camera2'][i].item()]
+            noops[i]['camera'] = [camera1, camera2]
             noops[i]['attack'] = int(output_dict['move'][i][0].item())
             noops[i]['forward'] = int(output_dict['move'][i][1].item())
             noops[i]['back'] = int(output_dict['move'][i][2].item())
@@ -178,12 +193,10 @@ class Transform(object):
             result['sprint']
         ], dim=-1).float()
 
-        del result['attack']
-        del result['forward']
-        del result['jump']
-        del result['back']
-        del result['left']
-        del result['right']
-        del result['sneak']
-        del result['sprint']
         return result
+
+    def discretize_camera(self, action):
+        camera = np.digitize(action['camera'], self.bins, right=True)
+        action['camera1'] = camera[:, 0] - 1
+        action['camera2'] = camera[:, 1] - 1
+        return action

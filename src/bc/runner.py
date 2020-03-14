@@ -28,9 +28,8 @@ class Runner(object):
             self.model.train()
             for _ in range(self.config.settings.bc.iterations):
                 batch = self.generator.sample()
-                pred = self.model.act(batch['obs'])
-                evaluation = self.model.evaluate(batch['obs'], batch['actions'])
-                loss = self.bc_criterion(batch, pred, evaluation)
+                pred = self.model.evaluate(batch['obs'], batch['actions'])
+                loss = self.bc_criterion(pred, batch)
                 self.optimizer.zero_grad()
                 loss.backward()
                 if self.config.settings.bc.gradient_clipping > 0:
