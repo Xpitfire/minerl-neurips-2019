@@ -59,6 +59,7 @@ class RecordingWrapper(gym.Wrapper):
         self.frames = []
         obs = super().reset(**kwargs)
         self.frames.append(obs[..., 1:])
+        self.cumulative_reward = 0
         return obs
 
 

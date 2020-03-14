@@ -13,7 +13,7 @@ class DataGenerator(object):
                                      data_dir=self.config.settings.env.data_root,
                                      force_download=True)
         self.generator = None
-        self.batch_size = self.config.settings.model.batch_size
+        self.batch_size = self.config.settings.bc.batch_size
         # add one additional sample for prediction in behavioural cloning
         self.seq_len = self.config.settings.model.seq_len + 1
 

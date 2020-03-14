@@ -3,7 +3,6 @@
   "input_channels": 4,
   "input_dim": 64,
   "seq_len": 32,
-  "batch_size": 16,
   "lstm_hidden_dim": 256,
   "lstm_layer_dim": 2,
   "critic_hidden_dim": 256,
