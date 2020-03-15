@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from tqdm import tqdm
-from torch import optim
 from lighter.decorator import context, reference, device
 from src.data.dataset import DataGenerator
 

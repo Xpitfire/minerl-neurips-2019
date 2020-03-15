@@ -36,10 +36,10 @@ class StateWrapper(gym.Wrapper):
 
 class RecordingWrapper(gym.Wrapper):
     @context
-    def __init__(self, env):
+    def __init__(self, env, directory):
         super(RecordingWrapper, self).__init__(env)
         self.frames = []
-        self.record_dir = 'video0'
+        self.record_dir = directory
         self.fps = self.config.settings.env.record_fps
         self.cumulative_reward = 0
 
@@ -154,14 +154,18 @@ class EnvWrapper(object):
     def __init__(self):
         self.wrapper = RemoteGym(host=self.config.settings.env.host, port=self.config.settings.env.port)
         self.wrapper.connect()
+        self.record_dir = os.path.join(self.config.settings.env.record_dir, self.config.context_id)
 
     def _build(self, env_id):
         env = self.wrapper.make(self.config.settings.env.env)
         env = TimeLimit(env, self.config.settings.env.max_episode_steps)
         env = StateWrapper(env)
         if self.config.settings.env.record_video:
-            env = RecordingWrapper(env)
-            env = Monitor(env, directory='./video{}'.format(env_id), force=True)
+            path = os.path.join(self.record_dir, str(env_id))
+            if not os.path.exists(path):
+                os.makedirs(path)
+            env = RecordingWrapper(env, directory=path)
+            env = Monitor(env, directory=path, force=True)
         env = NormalizationWrapper(env)
         env = ReshapeWrapper(env)
         env = FrameStack(env, self.config.settings.model.seq_len)

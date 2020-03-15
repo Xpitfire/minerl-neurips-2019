@@ -43,6 +43,7 @@ class CnnLstmNet(nn.Module):
         self.layer_dim = self.config.settings.model.lstm_layer_dim
         self.lstm = nn.LSTM(input_size=self.in_dim, hidden_size=self.hidden_dim, num_layers=self.layer_dim,
                             batch_first=True, dropout=0.0)
+        self.norm = DynLayerNorm()
 
     def get_dimensions(self):
         input_size = (1, self.config.settings.model.input_channels,
@@ -63,13 +64,15 @@ class CnnLstmNet(nn.Module):
                          dtype=x.dtype, layout=x.layout, device=x.device).requires_grad_()
 
         # reshape time to batch dimension
-        x = torch.reshape(x, shape=(b * s, c, h, w))
+        h = torch.reshape(x, shape=(b * s, c, h, w))
         # apply cnn encoder
-        x = self.cnn(x)
+        h = self.cnn(h)
         # split time and batch dimension
-        x = torch.reshape(x, shape=(b, s, -1))
+        h = torch.reshape(h, shape=(b, s, -1))
 
-        return self.lstm(x, (h0.detach(), c0.detach()))
+        h = self.lstm(h, (h0.detach(), c0.detach()))[0][:, -1, ...]
+        h = self.norm(h)
+        return h
 
 
 class ActorNet(nn.Module):
@@ -81,6 +84,7 @@ class ActorNet(nn.Module):
             DynLayerNorm(),
             nn.ReLU()
         )
+        self.norm = DynLayerNorm()
         self.camera_final_dim = self.config.settings.model.actor_camera_final_dim
         self.camera = nn.Linear(self.config.settings.model.actor_hidden_dim,
                                 self.camera_final_dim*2)
@@ -99,6 +103,7 @@ class ActorNet(nn.Module):
 
     def forward(self, x):
         h = self.linear(x)
+        h = self.norm(h)
 
         c = self.camera(h)
         camera1_probs = torch.softmax(c[:, :self.camera_final_dim], dim=-1)
@@ -149,7 +154,7 @@ class Net(nn.Module):
         self.critic = CriticNet()
 
     def act(self, state):
-        h = self.shared(state)[0][:, -1, ...]
+        h = self.shared(state)
         probs_dict = self.actor(h)
 
         camera1_dist = Categorical(probs=probs_dict['camera1'])
@@ -212,7 +217,7 @@ class Net(nn.Module):
         }
 
     def evaluate(self, state, action):
-        h = self.shared(state)[0][:, -1, ...]
+        h = self.shared(state)
         probs_dict = self.actor(h)
 
         camera1_dist = Categorical(probs=probs_dict['camera1'])

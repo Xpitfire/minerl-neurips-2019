@@ -136,7 +136,6 @@ class Transform(object):
             white = (255,)
 
             inventory = obs['inventory']
-
             draw.text((0, 0), "{}".format(inventory['coal'][i]), white, font=font)
             draw.text((16, 0), "{}".format(inventory['cobblestone'][i]), white, font=font)
             draw.text((32, 0), "{}".format(inventory['crafting_table'][i]), white, font=font)
