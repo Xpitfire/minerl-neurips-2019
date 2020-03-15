@@ -15,11 +15,9 @@ class Runner(object):
     @reference(name='bc_criterion')
     @reference(name='collectible')
     @reference(name='writer')
+    @reference(name='optimizer')
     def __init__(self):
         self.generator = DataGenerator()
-        self.optimizer = optim.SGD(self.model.parameters(),
-                                   lr=self.config.settings.bc.lr,
-                                   momentum=self.config.settings.bc.momentum)
 
     def run(self):
         self.generator.init()

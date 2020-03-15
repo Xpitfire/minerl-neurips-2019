@@ -169,5 +169,5 @@ class EnvWrapper(object):
 
     @property
     def env(self):
-        env = VecEnv(self._build, self.config.settings.env.poolsize)
+        env = VecEnv(self._build, self.config.settings.env.client_connections)
         return env

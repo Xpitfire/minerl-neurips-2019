@@ -56,16 +56,14 @@ class Transform(object):
             2: -4.0,
             3: -2.0,
             4: -1.0,
-            5: -0.3,
-            6: 0.0,
-            7: 0.3,
-            8: 1.0,
-            9: 2.0,
-            10: 4.0,
-            11: 7.0,
-            12: 10.0
+            5: 0.0,
+            6: 1.0,
+            7: 2.0,
+            8: 4.0,
+            9: 7.0,
+            10: 10.0
         }
-        self.bins = np.array([-np.inf, -10.0, -7.0, -4.0, -2.0, -1.0, -0.3, 0.3, 1.0, 2.0, 4.0, 7.0, 10.0, np.inf])
+        self.bins = np.array([-np.inf, -10.0, -7.0, -4.0, -2.0, -1.0, 1.0, 2.0, 4.0, 7.0, 10.0, np.inf])
 
     def prepare_for_model(self, x):
         return torch.from_numpy(np.stack(x, axis=0)).to(self.device)

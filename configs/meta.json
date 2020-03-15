@@ -11,6 +11,7 @@
     "eval_env": "type::src.eval.runner.Evaluation",
     "bc_criterion": "type::src.criterion.bc.BehaviouralCloningLoss",
     "collectible": "type::lighter.collectible.BaseCollectible",
-    "writer": "type::lighter.writer.BaseWriter"
+    "writer": "type::lighter.writer.BaseWriter",
+    "optimizer": "type::src.optimizer.adam.Adam"
   }
 }

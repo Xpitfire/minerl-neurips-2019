@@ -3,7 +3,7 @@ import os
 import torch.nn as nn
 from lighter.nn import DynLayerNorm
 from lighter.decorator import context, device
-from torch.distributions import Categorical, Normal, Bernoulli
+from torch.distributions import Categorical, Bernoulli
 from datetime import datetime
 
 
