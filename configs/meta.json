@@ -2,7 +2,8 @@
   "settings": {
     "env": "config::configs/env.json",
     "model": "config::configs/model.json",
-    "bc": "config::configs/bc.json"
+    "bc": "config::configs/bc.json",
+    "eval": "config::configs/eval.json"
   },
   "types": {
     "env_wrapper": "type::src.envs.wrapper.EnvWrapper",

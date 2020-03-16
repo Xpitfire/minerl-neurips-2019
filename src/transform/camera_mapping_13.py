@@ -51,21 +51,21 @@ class Transform(object):
             6: "torch"
         }
         self.camera_mapping = {
-            0: -5.0,
-            1: -3.0,
-            2: -2.0,
-            3: -1.0,
-            4: -0.3,
-            5: -0.1,
+            0: -10.0,
+            1: -7.0,
+            2: -4.0,
+            3: -2.0,
+            4: -1.0,
+            5: -0.3,
             6: 0.0,
-            7: 0.1,
-            8: 0.3,
-            9: 1.0,
-            10: 2.0,
-            11: 3.0,
-            12: 5.0
+            7: 0.3,
+            8: 1.0,
+            9: 2.0,
+            10: 4.0,
+            11: 7.0,
+            12: 10.0
         }
-        self.bins = np.array([-np.inf, -5.0, -3.0, -2.0, -1.0, -0.3, -0.1, 0.1, 0.3, 1.0, 2.0, 3.0, 5.0, np.inf])
+        self.bins = np.array([-np.inf, -10.0, -7.0, -4.0, -2.0, -1.0, -0.3, 0.3, 1.0, 2.0, 4.0, 7.0, 10.0, np.inf])
 
     def prepare_for_model(self, x):
         return torch.from_numpy(np.stack(x, axis=0)).to(self.device)
@@ -129,37 +129,35 @@ class Transform(object):
 
     def preprocess_states(self, obs):
         result = []
-        for i in range(obs['pov'].shape[0]):
+        for i in range(self.config.settings.model.seq_len):
             canvas = Image.new(mode="L", size=(self.input_dim, self.input_dim))
             draw = ImageDraw.Draw(canvas)
             font = ImageFont.load_default()
             white = (255,)
 
-            # used to exclude in TreeChop env
-            if hasattr(obs, 'inventory'):
-                inventory = obs['inventory']
-                draw.text((0, 0), "{}".format(inventory['coal'][i]), white, font=font)
-                draw.text((16, 0), "{}".format(inventory['cobblestone'][i]), white, font=font)
-                draw.text((32, 0), "{}".format(inventory['crafting_table'][i]), white, font=font)
-                draw.text((48, 0), "{}".format(inventory['dirt'][i]), white, font=font)
-                draw.text((0, 10), "{}".format(inventory['furnace'][i]), white, font=font)
-                draw.text((16, 10), "{}".format(inventory['iron_axe'][i]), white, font=font)
-                draw.text((32, 10), "{}".format(inventory['iron_ingot'][i]), white, font=font)
-                draw.text((48, 10), "{}".format(inventory['iron_ore'][i]), white, font=font)
-                draw.text((0, 20), "{}".format(inventory['iron_pickaxe'][i]), white, font=font)
-                draw.text((16, 20), "{}".format(inventory['log'][i]), white, font=font)
-                draw.text((32, 20), "{}".format(inventory['planks'][i]), white, font=font)
-                draw.text((48, 20), "{}".format(inventory['stick'][i]), white, font=font)
-                draw.text((0, 30), "{}".format(inventory['stone'][i]), white, font=font)
-                draw.text((16, 30), "{}".format(inventory['stone_axe'][i]), white, font=font)
-                draw.text((32, 30), "{}".format(inventory['stone_pickaxe'][i]), white, font=font)
-                draw.text((48, 30), "{}".format(inventory['torch'][i]), white, font=font)
-                draw.text((0, 40), "{}".format(inventory['wooden_axe'][i]), white, font=font)
-                draw.text((16, 40), "{}".format(inventory['wooden_pickaxe'][i]), white, font=font)
-                mainhand = obs['equipped_items']['mainhand']
-                draw.text((32, 40), "{}".format(mainhand['damage'][i]), white, font=font)
-                draw.text((48, 40), "{}".format(mainhand['maxDamage'][i]), white, font=font)
-                draw.text((20, 50), "{}".format(mainhand['type'][i]), white, font=font)
+            inventory = obs['inventory']
+            draw.text((0, 0), "{}".format(inventory['coal'][i]), white, font=font)
+            draw.text((16, 0), "{}".format(inventory['cobblestone'][i]), white, font=font)
+            draw.text((32, 0), "{}".format(inventory['crafting_table'][i]), white, font=font)
+            draw.text((48, 0), "{}".format(inventory['dirt'][i]), white, font=font)
+            draw.text((0, 10), "{}".format(inventory['furnace'][i]), white, font=font)
+            draw.text((16, 10), "{}".format(inventory['iron_axe'][i]), white, font=font)
+            draw.text((32, 10), "{}".format(inventory['iron_ingot'][i]), white, font=font)
+            draw.text((48, 10), "{}".format(inventory['iron_ore'][i]), white, font=font)
+            draw.text((0, 20), "{}".format(inventory['iron_pickaxe'][i]), white, font=font)
+            draw.text((16, 20), "{}".format(inventory['log'][i]), white, font=font)
+            draw.text((32, 20), "{}".format(inventory['planks'][i]), white, font=font)
+            draw.text((48, 20), "{}".format(inventory['stick'][i]), white, font=font)
+            draw.text((0, 30), "{}".format(inventory['stone'][i]), white, font=font)
+            draw.text((16, 30), "{}".format(inventory['stone_axe'][i]), white, font=font)
+            draw.text((32, 30), "{}".format(inventory['stone_pickaxe'][i]), white, font=font)
+            draw.text((48, 30), "{}".format(inventory['torch'][i]), white, font=font)
+            draw.text((0, 40), "{}".format(inventory['wooden_axe'][i]), white, font=font)
+            draw.text((16, 40), "{}".format(inventory['wooden_pickaxe'][i]), white, font=font)
+            mainhand = obs['equipped_items']['mainhand']
+            draw.text((32, 40), "{}".format(mainhand['damage'][i]), white, font=font)
+            draw.text((48, 40), "{}".format(mainhand['maxDamage'][i]), white, font=font)
+            draw.text((20, 50), "{}".format(mainhand['type'][i]), white, font=font)
 
             inv = np.asarray(canvas).astype(np.uint8)[..., np.newaxis]
             frame = obs['pov'][i]

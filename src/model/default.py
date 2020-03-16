@@ -22,9 +22,10 @@ class ConvNet(nn.Module):
             nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=0),
             DynLayerNorm(),
             nn.ReLU(),
-            nn.Conv2d(256, 64, kernel_size=3, stride=2, padding=0),
+            nn.Conv2d(256, 512, kernel_size=3, stride=1, padding=0),
             DynLayerNorm(),
-            nn.ReLU()
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d(output_size=(1, 1))
         )
 
     def forward(self, x):
@@ -145,6 +146,7 @@ class CriticNet(nn.Module):
 
 
 class Net(nn.Module):
+    @device
     @context
     def __init__(self):
         super(Net, self).__init__()
@@ -302,3 +304,7 @@ class Net(nn.Module):
             'epoch': epoch,
             'model_state_dict': self.state_dict()
         }, ckpt_file)
+
+    def load(self, path):
+        checkpoint = torch.load(path, map_location=self.device)
+        self.load_state_dict(checkpoint['model_state_dict'])

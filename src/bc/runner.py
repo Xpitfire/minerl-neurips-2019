@@ -16,15 +16,13 @@ class Runner(object):
     @reference(name='writer')
     @reference(name='optimizer')
     def __init__(self):
-        self.generator = DataGenerator()
+        pass
 
     def run(self):
-        self.generator.init()
         self.model.to(self.device)
         for e in tqdm(range(self.config.settings.bc.epochs)):
             self.model.train()
-            for _ in range(self.config.settings.bc.iterations):
-                batch = self.generator.sample()
+            for batch in DataGenerator():
                 pred = self.model.evaluate(batch['obs'], batch['actions'])
                 loss = self.bc_criterion(pred, batch)
                 self.optimizer.zero_grad()
@@ -40,5 +38,3 @@ class Runner(object):
             self.model.checkpoint(e)
             self.model.eval()
             self.eval_env.run()
-
-

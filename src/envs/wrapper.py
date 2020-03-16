@@ -63,6 +63,29 @@ class RecordingWrapper(gym.Wrapper):
         return obs
 
 
+class FrameSkip(gym.Wrapper):
+    @context
+    def __init__(self, env):
+        super(FrameSkip, self).__init__(env)
+        self.frame_skip = self.config.settings.env.frame_skip
+        assert self.frame_skip >= 0
+
+    def step(self, action):
+        total_reward = 0
+        obs, reward, done, info = super().step(action)
+        total_reward += reward
+        if action['craft'] == 0 and action['nearbyCraft'] == 0 and action['nearbySmelt'] == 0:
+            repeat_action = action
+        else:
+            repeat_action = self.action_space.noop()
+        cnt = 0
+        while cnt < self.frame_skip and not done:
+            obs, reward, done, info = super().step(repeat_action)
+            total_reward += reward
+            cnt += 1
+        return obs, total_reward, done, info
+
+
 class NormalizationWrapper(gym.Wrapper):
     @context
     @reference(name='transform')
@@ -166,6 +189,7 @@ class EnvWrapper(object):
                 os.makedirs(path)
             env = RecordingWrapper(env, directory=path)
             env = Monitor(env, directory=path, force=True)
+        env = FrameSkip(env)
         env = NormalizationWrapper(env)
         env = ReshapeWrapper(env)
         env = FrameStack(env, self.config.settings.model.seq_len)

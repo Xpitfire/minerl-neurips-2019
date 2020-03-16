@@ -1,19 +1,18 @@
 from lighter.context import Context
 from lighter.decorator import context
-
 from src.data.dataset import DataGenerator
 
 
 class Demo(object):
     @context
     def __init__(self):
-        self.generator = DataGenerator()
+        pass
 
     def run(self):
-        self.generator.init()
-        for _ in range(1):
-            obs, actions, rewards, next_states, dones = self.generator.sample()
-            print(obs.shape, actions['move'].shape, rewards.shape)
+        cnt = 0
+        for sample in DataGenerator():
+            cnt += 1
+        print(cnt)
 
 
 if __name__ == "__main__":
