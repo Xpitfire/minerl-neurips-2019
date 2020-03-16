@@ -16,7 +16,7 @@ class DataGenerator(object):
         # add one additional sample for prediction in behavioural cloning
         self.seq_len = self.config.settings.model.seq_len*(self.config.settings.env.frame_skip+1) + 1
         self.epochs = epochs
-        self.generator = self.data.sarsd_iter(num_epochs=self.epochs, max_sequence_len=self.seq_len)
+        self.generator = None
         self.consts = {
             "MineRLObtainDiamond-v0": 1836040,
             "MineRLObtainDiamondDense-v0": 1836040,
@@ -56,7 +56,11 @@ class DataGenerator(object):
             'values': rewards
         }
 
+    def reset(self):
+        self.generator = self.data.sarsd_iter(num_epochs=self.epochs, max_sequence_len=self.seq_len)
+
     def __iter__(self):
+        self.reset()
         return self
 
     def __next__(self):

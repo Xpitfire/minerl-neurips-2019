@@ -16,14 +16,14 @@ class Runner(object):
     @reference(name='writer')
     @reference(name='optimizer')
     def __init__(self):
-        pass
+        self.generator = DataGenerator()
 
     def run(self):
         self.model.to(self.device)
         for e in tqdm(range(self.config.settings.bc.epochs)):
             self.model.train()
-            for batch in DataGenerator():
-                pred = self.model.evaluate(batch['obs'], batch['actions'])
+            for batch in self.generator:
+                pred = self.model.act(batch['obs'])
                 loss = self.bc_criterion(pred, batch)
                 self.optimizer.zero_grad()
                 loss.backward()

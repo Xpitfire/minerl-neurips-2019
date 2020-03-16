@@ -44,7 +44,6 @@ class CnnLstmNet(nn.Module):
         self.layer_dim = self.config.settings.model.lstm_layer_dim
         self.lstm = nn.LSTM(input_size=self.in_dim, hidden_size=self.hidden_dim, num_layers=self.layer_dim,
                             batch_first=True, dropout=0.0)
-        self.norm = DynLayerNorm()
 
     def get_dimensions(self):
         input_size = (1, self.config.settings.model.input_channels,
@@ -72,7 +71,6 @@ class CnnLstmNet(nn.Module):
         h = torch.reshape(h, shape=(b, s, -1))
 
         h = self.lstm(h, (h0.detach(), c0.detach()))[0][:, -1, ...]
-        h = self.norm(h)
         return h
 
 
@@ -85,7 +83,6 @@ class ActorNet(nn.Module):
             DynLayerNorm(),
             nn.ReLU()
         )
-        self.norm = DynLayerNorm()
         self.camera_final_dim = self.config.settings.model.actor_camera_final_dim
         self.camera1 = nn.Linear(self.config.settings.model.actor_hidden_dim,
                                  self.camera_final_dim)
@@ -106,7 +103,6 @@ class ActorNet(nn.Module):
 
     def forward(self, x):
         h = self.linear(x)
-        h = self.norm(h)
 
         camera1_probs = torch.softmax(self.camera1(h), dim=-1)
         camera2_probs = torch.softmax(self.camera2(h), dim=-1)
@@ -159,6 +155,7 @@ class Net(nn.Module):
     def act(self, state):
         h = self.shared(state)
         probs_dict = self.actor(h)
+        value = self.critic(h)
 
         camera1_dist = Categorical(probs=probs_dict['camera1'])
         camera1_action = camera1_dist.sample()
@@ -217,11 +214,13 @@ class Net(nn.Module):
             'nearbySmelt': nearbySmelt_action,
             'nearbySmelt_log_probs': nearbySmelt_log_probs,
             'nearbySmelt_net_out': probs_dict['nearbySmelt'],
+            'value': value
         }
 
     def evaluate(self, state, action):
         h = self.shared(state)
         probs_dict = self.actor(h)
+        value = self.critic(h)
 
         camera1_dist = Categorical(probs=probs_dict['camera1'])
         camera1_log_probs = camera1_dist.log_prob(action['camera1'])
@@ -288,7 +287,7 @@ class Net(nn.Module):
             'nearbySmelt_log_probs': nearbySmelt_log_probs,
             'nearbySmelt_entropy': nearbySmelt_entropy,
             'nearbySmelt_net_out': probs_dict['nearbySmelt'],
-            'value': self.critic(h)
+            'value': value
         }
 
     def forward(self, x):

@@ -6,11 +6,11 @@ from src.data.dataset import DataGenerator
 class Demo(object):
     @context
     def __init__(self):
-        pass
+        self.generator = DataGenerator()
 
     def run(self):
         cnt = 0
-        for sample in DataGenerator():
+        for sample in self.generator:
             cnt += 1
         print(cnt)
 
