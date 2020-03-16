@@ -87,8 +87,10 @@ class ActorNet(nn.Module):
         )
         self.norm = DynLayerNorm()
         self.camera_final_dim = self.config.settings.model.actor_camera_final_dim
-        self.camera = nn.Linear(self.config.settings.model.actor_hidden_dim,
-                                self.camera_final_dim*2)
+        self.camera1 = nn.Linear(self.config.settings.model.actor_hidden_dim,
+                                 self.camera_final_dim)
+        self.camera2 = nn.Linear(self.config.settings.model.actor_hidden_dim,
+                                 self.camera_final_dim)
         self.move = nn.Linear(self.config.settings.model.actor_hidden_dim,
                               self.config.settings.model.actor_move_final_dim)
         self.craft = nn.Linear(self.config.settings.model.actor_hidden_dim,
@@ -106,9 +108,8 @@ class ActorNet(nn.Module):
         h = self.linear(x)
         h = self.norm(h)
 
-        c = self.camera(h)
-        camera1_probs = torch.softmax(c[:, :self.camera_final_dim], dim=-1)
-        camera2_probs = torch.softmax(c[:, self.camera_final_dim:], dim=-1)
+        camera1_probs = torch.softmax(self.camera1(h), dim=-1)
+        camera2_probs = torch.softmax(self.camera2(h), dim=-1)
         move_probs = torch.sigmoid(self.move(h))
         craft_probs = torch.softmax(self.craft(h), dim=-1)
         equip_probs = torch.softmax(self.equip(h), dim=-1)

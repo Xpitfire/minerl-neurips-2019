@@ -1,11 +1,10 @@
 import minerl
-from lighter.context import Context
-from lighter.decorator import context
+from lighter.config import Config
 
 
 class Demo(object):
-    @context
-    def __init__(self):
+    def __init__(self, config):
+        self.config = config
         self.data = minerl.data.make(self.config.settings.env.env,
                                      data_dir=self.config.settings.env.data_root,
                                      force_download=True)
@@ -15,7 +14,7 @@ class Demo(object):
         cnt = 0
         try:
             while True:
-                next(self.generator)
+                state, action, reward, next_state, done = next(self.generator)
                 cnt += 1
         except Exception as e:
             print(e)
@@ -23,6 +22,13 @@ class Demo(object):
 
 
 if __name__ == "__main__":
-    Context.create(device='cpu', config_file='configs/meta.json')
-    demo = Demo()
+    config = Config.create_instance(config_dict={
+        "settings": {
+            "env": "config::configs/env.json",
+            "model": "config::configs/model.json",
+            "bc": "config::configs/bc.json",
+            "eval": "config::configs/eval.json"
+        }
+    })
+    demo = Demo(config)
     demo.run()
