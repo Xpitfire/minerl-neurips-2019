@@ -19,6 +19,7 @@ class Runner(object):
         self.generator = DataGenerator()
 
     def run(self):
+        self.model.load(self.config.settings.bc.checkpoint)
         self.model.to(self.device)
         for e in tqdm(range(self.config.settings.bc.epochs)):
             self.model.train()
@@ -30,7 +31,6 @@ class Runner(object):
                 if self.config.settings.bc.gradient_clipping > 0:
                     torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config.settings.bc.gradient_clipping)
                 self.optimizer.step()
-                self.collectible.update(category='train', **{'loss': loss.detach().cpu().item()})
             collection = self.collectible.redux(func=np.mean)
             self.writer.write(category='train', **collection)
             self.writer.step()

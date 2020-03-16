@@ -1,6 +1,6 @@
 {
   "epochs": 150,
-  "batch_size": 64,
+  "batch_size": 32,
   "lr": 0.001,
   "momentum": 0.9,
   "gradient_clipping": 0.5,

@@ -8,20 +8,21 @@ class DataGenerator(object):
     @device
     @context
     @reference(name='transform')
-    def __init__(self, epochs=1):
+    def __init__(self):
         self.data = minerl.data.make(self.config.settings.env.env,
                                      data_dir=self.config.settings.env.data_root,
                                      force_download=True)
         self.batch_size = self.config.settings.bc.batch_size
         # add one additional sample for prediction in behavioural cloning
         self.seq_len = self.config.settings.model.seq_len*(self.config.settings.env.frame_skip+1) + 1
-        self.epochs = epochs
-        self.generator = None
+        self.generator = self.data.sarsd_iter(num_epochs=-1, max_sequence_len=self.seq_len)
         self.consts = {
-            "MineRLObtainDiamond-v0": 1836040,
-            "MineRLObtainDiamondDense-v0": 1836040,
-            "MineRLTreechop-v0": 439928
+            "MineRLObtainDiamond-v0": 1836040.,
+            "MineRLObtainDiamondDense-v0": 1836040.,
+            "MineRLTreechop-v0": 439928.
         }
+        self.iterations = self.consts[self.config.settings.env.env] / (self.seq_len*self.batch_size)
+        self.itr = 0
 
     def sample(self):
         states = []
@@ -41,7 +42,7 @@ class DataGenerator(object):
             o = self.transform.reshape_states(o)
             states.append(o)
 
-            a = self.transform.discretize_camera(action)
+            a = self.transform.preprocess_camera(action)
             actions.append(a)
             rewards.append(reward)
 
@@ -56,12 +57,13 @@ class DataGenerator(object):
             'values': rewards
         }
 
-    def reset(self):
-        self.generator = self.data.sarsd_iter(num_epochs=self.epochs, max_sequence_len=self.seq_len)
-
     def __iter__(self):
-        self.reset()
+        self.itr = 0
         return self
 
     def __next__(self):
-        return self.sample()
+        if self.itr >= self.iterations:
+            raise StopIteration
+        s = self.sample()
+        self.itr += 1
+        return s

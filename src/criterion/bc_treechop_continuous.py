@@ -7,7 +7,6 @@ class BehaviouralCloningLoss(torch.nn.Module):
     @reference(name='collectible')
     def __init__(self):
         super(BehaviouralCloningLoss, self).__init__()
-        self.ce = torch.nn.CrossEntropyLoss()
         self.bce = torch.nn.BCELoss()
         self.mse = torch.nn.MSELoss()
 
@@ -16,9 +15,9 @@ class BehaviouralCloningLoss(torch.nn.Module):
         assert self.config.settings.model.actor_camera_final_dim == pred['camera2_logits'].shape[-1]
         assert self.config.settings.model.actor_move_final_dim == pred['move_logits'].shape[-1]
 
-        camera1 = target['actions']['camera1'].long()
-        camera2 = target['actions']['camera2'].long()
-        camera_loss = self.ce(pred['camera1_logits'], camera1) + self.ce(pred['camera2_logits'], camera2)
+        camera1 = target['actions']['camera1'].view(-1, 1)
+        camera2 = target['actions']['camera2'].view(-1, 1)
+        camera_loss = torch.log(1 + self.mse(pred['camera1_logits'], camera1) + self.mse(pred['camera2_logits'], camera2))
         move_loss = 0.
         for m in range(self.config.settings.model.actor_move_final_dim):
             move = target['actions']['move'][:, m].float()

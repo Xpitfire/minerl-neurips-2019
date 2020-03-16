@@ -157,16 +157,6 @@ class Net(nn.Module):
         logits_dict = self.actor(h)
         value = self.critic(h)
 
-        camera1_probs = torch.softmax(logits_dict['camera1_logits'], dim=-1)
-        camera1_dist = Categorical(probs=camera1_probs)
-        camera1_action = camera1_dist.sample()
-        camera1_log_probs = camera1_dist.log_prob(camera1_action)
-
-        camera2_probs = torch.softmax(logits_dict['camera2_logits'], dim=-1)
-        camera2_dist = Categorical(probs=camera2_probs)
-        camera2_action = camera2_dist.sample()
-        camera2_log_probs = camera2_dist.log_prob(camera2_action)
-
         move_probs = torch.sigmoid(logits_dict['move_logits'])
         move_dist = Bernoulli(probs=move_probs)
         move_action = move_dist.sample()
@@ -198,11 +188,9 @@ class Net(nn.Module):
         nearbySmelt_log_probs = nearbySmelt_dist.log_prob(nearbySmelt_action)
 
         return {
-            'camera1': camera1_action,
-            'camera1_log_probs': camera1_log_probs,
+            'camera1': logits_dict['camera1_logits'],
             'camera1_logits': logits_dict['camera1_logits'],
-            'camera2': camera2_action,
-            'camera2_log_probs': camera2_log_probs,
+            'camera2': logits_dict['camera2_logits'],
             'camera2_logits': logits_dict['camera2_logits'],
             'move': move_action,
             'move_log_probs': move_log_probs,
@@ -229,16 +217,6 @@ class Net(nn.Module):
         h = self.shared(state)
         logits_dict = self.actor(h)
         value = self.critic(h)
-
-        camera1_probs = torch.softmax(logits_dict['camera1_logits'], dim=-1)
-        camera1_dist = Categorical(probs=camera1_probs)
-        camera1_log_probs = camera1_dist.log_prob(action['camera1'])
-        camera1_entropy = camera1_dist.entropy()
-
-        camera2_probs = torch.softmax(logits_dict['camera2_logits'], dim=-1)
-        camera2_dist = Categorical(probs=camera2_probs)
-        camera2_log_probs = camera2_dist.log_prob(action['camera2'])
-        camera2_entropy = camera2_dist.entropy()
 
         move_probs = torch.sigmoid(logits_dict['move_logits'])
         move_dist = Bernoulli(probs=move_probs)
@@ -272,12 +250,8 @@ class Net(nn.Module):
 
         return {
             'camera1': action['camera1'],
-            'camera1_log_probs': camera1_log_probs,
-            'camera1_entropy': camera1_entropy,
             'camera1_logits': logits_dict['camera1_logits'],
             'camera2': action['camera2'],
-            'camera2_log_probs': camera2_log_probs,
-            'camera2_entropy': camera2_entropy,
             'camera2_logits': logits_dict['camera2_logits'],
             'move': action['move'],
             'move_log_probs': move_log_probs,

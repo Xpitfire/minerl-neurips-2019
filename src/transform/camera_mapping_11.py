@@ -195,7 +195,7 @@ class Transform(object):
 
         return result
 
-    def discretize_camera(self, action):
+    def preprocess_camera(self, action):
         camera = np.digitize(action['camera'], self.bins, right=True)
         action['camera1'] = camera[:, 0] - 1
         action['camera2'] = camera[:, 1] - 1

@@ -74,7 +74,8 @@ class FrameSkip(gym.Wrapper):
         total_reward = 0
         obs, reward, done, info = super().step(action)
         total_reward += reward
-        if action['craft'] == 0 and action['nearbyCraft'] == 0 and action['nearbySmelt'] == 0:
+        if self.config.settings.env.env == 'MineRLTreechop-v0' \
+                or action['craft'] == 0 and action['nearbyCraft'] == 0 and action['nearbySmelt'] == 0:
             repeat_action = action
         else:
             repeat_action = self.action_space.noop()
@@ -188,7 +189,7 @@ class EnvWrapper(object):
             if not os.path.exists(path):
                 os.makedirs(path)
             env = RecordingWrapper(env, directory=path)
-            env = Monitor(env, directory=path, force=True)
+            env = Monitor(env, directory=path, force=True, write_upon_reset=True)
         env = FrameSkip(env)
         env = NormalizationWrapper(env)
         env = ReshapeWrapper(env)
