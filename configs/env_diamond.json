@@ -8,6 +8,6 @@
   "record_fps": 60,
   "data_root": "/local00/bioinf/dinu/minerl/data",
   "record_dir": "video",
-  "max_episode_steps": 1800,
+  "max_episode_steps": 3600,
   "frame_skip": 0
 }

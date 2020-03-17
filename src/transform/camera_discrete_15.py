@@ -86,15 +86,15 @@ class Transform(object):
             noops[i]['sneak'] = int(output_dict['move'][i][6].item())
             noops[i]['sprint'] = int(output_dict['move'][i][7].item())
             noops[i]['forward'] = int(output_dict['move'][i][1].item())
-            if hasattr(output_dict['craft'][i], 'craft'):
+            if 'craft' in output_dict:
                 noops[i]['craft'] = self.craft_mapping[output_dict['craft'][i].item()]
-            if hasattr(output_dict['equip'][i], 'equip'):
+            if 'equip' in output_dict:
                 noops[i]['equip'] = self.equip_mapping[output_dict['equip'][i].item()]
-            if hasattr(output_dict['place'][i], 'place'):
+            if 'place' in output_dict:
                 noops[i]['place'] = self.place_mapping[output_dict['place'][i].item()]
-            if hasattr(output_dict['nearbyCraft'][i], 'nearbyCraft'):
+            if 'nearbyCraft' in output_dict:
                 noops[i]['nearbyCraft'] = self.nearbyCraft_mapping[output_dict['nearbyCraft'][i].item()]
-            if hasattr(output_dict['nearbySmelt'][i], 'nearbySmelt'):
+            if 'nearbySmelt' in output_dict:
                 noops[i]['nearbySmelt'] = self.nearbySmelt_mapping[output_dict['nearbySmelt'][i].item()]
         return noops
 
@@ -105,7 +105,7 @@ class Transform(object):
         white = (255,)
 
         # used to exclude in TreeChop env
-        if hasattr(obs, 'inventory'):
+        if 'inventory' in obs:
             inventory = obs['inventory']
             draw.text((0, 0), "{}".format(inventory['coal']), white, font=font)
             draw.text((16, 0), "{}".format(inventory['cobblestone']), white, font=font)
@@ -145,7 +145,7 @@ class Transform(object):
             white = (255,)
 
             # used to exclude in TreeChop env
-            if hasattr(obs, 'inventory'):
+            if 'inventory' in obs:
                 inventory = obs['inventory']
                 draw.text((0, 0), "{}".format(inventory['coal'][i]), white, font=font)
                 draw.text((16, 0), "{}".format(inventory['cobblestone'][i]), white, font=font)
