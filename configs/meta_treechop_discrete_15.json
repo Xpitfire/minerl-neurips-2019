@@ -1,16 +1,16 @@
 {
   "settings": {
     "env": "config::configs/env_treechop.json",
-    "model": "config::configs/model_continuous.json",
-    "bc": "config::configs/bc_continuous.json",
+    "model": "config::configs/model_discrete_15.json",
+    "bc": "config::configs/bc_discrete.json",
     "eval": "config::configs/eval.json"
   },
   "types": {
     "env_wrapper": "type::src.envs.wrapper.EnvWrapper",
-    "transform": "type::src.transform.camera_continuous.Transform",
-    "model": "type::src.model.default_continuous.Net",
+    "transform": "type::src.transform.camera_discrete_15.Transform",
+    "model": "type::src.model.default_discrete.Net",
     "eval_env": "type::src.eval.runner.Evaluation",
-    "bc_criterion": "type::src.criterion.bc_treechop_continuous.BehaviouralCloningLoss",
+    "bc_criterion": "type::src.criterion.bc_treechop_discrete.BehaviouralCloningLoss",
     "collectible": "type::lighter.collectible.BaseCollectible",
     "writer": "type::lighter.writer.BaseWriter",
     "optimizer": "type::src.optimizer.adam.Adam"

@@ -27,7 +27,7 @@ class BehaviouralCloningLoss(torch.nn.Module):
         move_loss = 0.
         for m in range(self.config.settings.model.actor_move_final_dim):
             move = target['actions']['move'][:, m].float()
-            move_loss = move_loss + self.bce(pred['move_logits'][:, m], move)
+            move_loss = move_loss + self.bce(torch.sigmoid(pred['move_logits'][:, m]), move)
         craft = target['actions']['craft'].long()
         craft_loss = self.ce(pred['craft_logits'], craft)
         equip = target['actions']['equip'].long()

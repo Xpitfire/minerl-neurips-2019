@@ -24,9 +24,9 @@ class Demo(object):
 if __name__ == "__main__":
     config = Config.create_instance(config_dict={
         "settings": {
-            "env": "config::configs/env.json",
-            "model": "config::configs/model.json",
-            "bc": "config::configs/bc.json",
+            "env": "config::configs/env_treechop.json",
+            "model": "config::configs/model_discrete_15.json",
+            "bc": "config::configs/bc_discrete.json",
             "eval": "config::configs/eval.json"
         }
     })

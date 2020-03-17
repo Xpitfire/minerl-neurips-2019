@@ -6,5 +6,5 @@ from src.envs.env_server import start
 
 
 if __name__ == "__main__":
-    args = Config(path='configs/env.json')
+    args = Config(path='configs/env_diamond.json')
     start(args)

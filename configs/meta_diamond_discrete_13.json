@@ -1,0 +1,18 @@
+{
+  "settings": {
+    "env": "config::configs/env_diamond.json",
+    "model": "config::configs/model_discrete_13.json",
+    "bc": "config::configs/bc_discrete.json",
+    "eval": "config::configs/eval.json"
+  },
+  "types": {
+    "env_wrapper": "type::src.envs.wrapper.EnvWrapper",
+    "transform": "type::src.transform.camera_discrete_13_v2.Transform",
+    "model": "type::src.model.default_discrete.Net",
+    "eval_env": "type::src.eval.runner.Evaluation",
+    "bc_criterion": "type::src.criterion.bc_diamond_discrete.BehaviouralCloningLoss",
+    "collectible": "type::lighter.collectible.BaseCollectible",
+    "writer": "type::lighter.writer.BaseWriter",
+    "optimizer": "type::src.optimizer.adam.Adam"
+  }
+}
