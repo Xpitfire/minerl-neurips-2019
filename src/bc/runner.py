@@ -24,7 +24,7 @@ class Runner(object):
         for e in tqdm(range(self.config.settings.bc.epochs)):
             self.model.train()
             for batch in self.generator:
-                pred = self.model.act(batch['obs'])
+                pred = self.model.imitate(batch['obs'])
                 loss = self.bc_criterion(pred, batch)
                 self.optimizer.zero_grad()
                 loss.backward()

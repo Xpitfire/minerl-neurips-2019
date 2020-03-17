@@ -152,6 +152,65 @@ class Net(nn.Module):
         self.actor = ActorNet()
         self.critic = CriticNet()
 
+    def imitate(self, state):
+        h = self.shared(state)
+        b, s, c = h.shape
+        h = h.reshape((b * s, c))
+        logits_dict = self.actor(h)
+        value = self.critic(h)
+
+        camera1_probs = torch.softmax(logits_dict['camera1_logits'], dim=-1)
+        camera1_dist = Categorical(probs=camera1_probs)
+        camera1_action = camera1_dist.sample()
+
+        camera2_probs = torch.softmax(logits_dict['camera2_logits'], dim=-1)
+        camera2_dist = Categorical(probs=camera2_probs)
+        camera2_action = camera2_dist.sample()
+
+        move_probs = torch.sigmoid(logits_dict['move_logits'])
+        move_dist = Bernoulli(probs=move_probs)
+        move_action = move_dist.sample()
+
+        craft_probs = torch.softmax(logits_dict['craft_logits'], dim=-1)
+        craft_dist = Categorical(probs=craft_probs)
+        craft_action = craft_dist.sample()
+
+        equip_probs = torch.softmax(logits_dict['equip_logits'], dim=-1)
+        equip_dist = Categorical(probs=equip_probs)
+        equip_action = equip_dist.sample()
+
+        place_probs = torch.softmax(logits_dict['place_logits'], dim=-1)
+        place_dist = Categorical(probs=place_probs)
+        place_action = place_dist.sample()
+
+        nearbyCraft_probs = torch.softmax(logits_dict['nearbyCraft_logits'], dim=-1)
+        nearbyCraft_dist = Categorical(probs=nearbyCraft_probs)
+        nearbyCraft_action = nearbyCraft_dist.sample()
+
+        nearbySmelt_probs = torch.softmax(logits_dict['nearbySmelt_logits'], dim=-1)
+        nearbySmelt_dist = Categorical(probs=nearbySmelt_probs)
+        nearbySmelt_action = nearbySmelt_dist.sample()
+
+        return {
+            'camera1': camera1_action,
+            'camera1_logits': logits_dict['camera1_logits'],
+            'camera2': camera2_action,
+            'camera2_logits': logits_dict['camera2_logits'],
+            'move': move_action,
+            'move_logits': logits_dict['move_logits'],
+            'craft': craft_action,
+            'craft_logits': logits_dict['craft_logits'],
+            'equip': equip_action,
+            'equip_logits': logits_dict['equip_logits'],
+            'place': place_action,
+            'place_logits': logits_dict['place_logits'],
+            'nearbyCraft': nearbyCraft_action,
+            'nearbyCraft_logits': logits_dict['nearbyCraft_logits'],
+            'nearbySmelt': nearbySmelt_action,
+            'nearbySmelt_logits': logits_dict['nearbySmelt_logits'],
+            'value': value
+        }
+
     def act(self, state):
         h = self.shared(state)
         logits_dict = self.actor(h)

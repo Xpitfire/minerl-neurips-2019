@@ -51,9 +51,9 @@ class Transform(object):
             6: "torch"
         }
         self.camera_mapping = {
-            0: -10.0,
+            0: -18.0,
             1: -7.0,
-            2: -4.0,
+            2: -5.0,
             3: -2.0,
             4: -1.0,
             5: -0.3,
@@ -61,11 +61,11 @@ class Transform(object):
             7: 0.3,
             8: 1.0,
             9: 2.0,
-            10: 4.0,
+            10: 5.0,
             11: 7.0,
-            12: 10.0
+            12: 18.0
         }
-        self.bins = np.array([-np.inf, -10.0, -7.0, -4.0, -2.0, -1.0, -0.3, 0.3, 1.0, 2.0, 4.0, 7.0, 10.0, np.inf])
+        self.bins = np.array([-np.inf, -18.0, -7.0, -5.0, -2.0, -1.0, -0.3, 0.3, 1.0, 2.0, 5.0, 7.0, 18.0, np.inf])
 
     def prepare_for_model(self, x):
         return torch.from_numpy(np.stack(x, axis=0)).to(self.device)
@@ -84,15 +84,15 @@ class Transform(object):
             noops[i]['sneak'] = int(output_dict['move'][i][6].item())
             noops[i]['sprint'] = int(output_dict['move'][i][7].item())
             noops[i]['forward'] = int(output_dict['move'][i][1].item())
-            if 'craft' in output_dict:
+            if 'craft' in noops[i]:
                 noops[i]['craft'] = self.craft_mapping[output_dict['craft'][i].item()]
-            if 'equip' in output_dict:
+            if 'equip' in noops[i]:
                 noops[i]['equip'] = self.equip_mapping[output_dict['equip'][i].item()]
-            if 'place' in output_dict:
+            if 'place' in noops[i]:
                 noops[i]['place'] = self.place_mapping[output_dict['place'][i].item()]
-            if 'nearbyCraft' in output_dict:
+            if 'nearbyCraft' in noops[i]:
                 noops[i]['nearbyCraft'] = self.nearbyCraft_mapping[output_dict['nearbyCraft'][i].item()]
-            if 'nearbySmelt' in output_dict:
+            if 'nearbySmelt' in noops[i]:
                 noops[i]['nearbySmelt'] = self.nearbySmelt_mapping[output_dict['nearbySmelt'][i].item()]
         return noops
 
@@ -183,14 +183,16 @@ class Transform(object):
     def reshape_states(self, obs):
         return np.transpose(obs, (0, 3, 1, 2))
 
-    def stack_actions(self, actions):
+    def stack_actions(self, actions, seq_len):
         result = dict.fromkeys(actions[0].keys(), [])
         for k in result.keys():
             result[k] = []
             for a in actions:
                 result[k].append(a[k])
         for k in result.keys():
-            result[k] = torch.from_numpy(np.stack(result[k], axis=0)).to(self.device)[:, -1, ...]
+            result[k] = torch.from_numpy(np.stack(result[k], axis=0)).to(self.device)[:, 1:, ...]
+            shape = (result[k].shape[0] * seq_len, ) + result[k].shape[2:]
+            result[k] = result[k].reshape(shape)
 
         result['move'] = torch.stack([
             result['attack'],

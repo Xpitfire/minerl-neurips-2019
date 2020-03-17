@@ -7,7 +7,7 @@
   },
   "types": {
     "env_wrapper": "type::src.envs.wrapper.EnvWrapper",
-    "transform": "type::src.transform.camera_discrete_13_v2.Transform",
+    "transform": "type::src.transform.camera_discrete_13.Transform",
     "model": "type::src.model.default_discrete.Net",
     "eval_env": "type::src.eval.runner.Evaluation",
     "bc_criterion": "type::src.criterion.bc_diamond_discrete.BehaviouralCloningLoss",

@@ -14,14 +14,15 @@ class DataGenerator(object):
                                      force_download=True)
         self.batch_size = self.config.settings.bc.batch_size
         # add one additional sample for prediction in behavioural cloning
-        self.seq_len = self.config.settings.model.seq_len*(self.config.settings.env.frame_skip+1) + 1
-        self.generator = self.data.sarsd_iter(num_epochs=-1, max_sequence_len=self.seq_len)
+        self.seq_len = self.config.settings.model.seq_len
+        self.slice_len = self.seq_len*(self.config.settings.env.frame_skip+1) + 1
+        self.generator = self.data.sarsd_iter(num_epochs=-1, max_sequence_len=self.slice_len)
         self.consts = {
             "MineRLObtainDiamond-v0": 1836040.,
             "MineRLObtainDiamondDense-v0": 1836040.,
             "MineRLTreechop-v0": 439928.
         }
-        self.iterations = self.consts[self.config.settings.env.env] / (self.seq_len*self.batch_size)
+        self.iterations = self.consts[self.config.settings.env.env] / (self.slice_len*self.batch_size)
         self.itr = 0
 
     def sample(self):
@@ -34,7 +35,7 @@ class DataGenerator(object):
             if self.config.settings.env.frame_skip > 0:
                 raise NotImplementedError
             # skip too short sequences
-            if len(done) < self.seq_len:
+            if len(done) < self.slice_len:
                 continue
 
             o = self.transform.preprocess_states(state)
@@ -48,8 +49,10 @@ class DataGenerator(object):
 
         obs = torch.from_numpy(np.stack(states, axis=0))
         obs = obs.to(self.device)[:, :-1, ...]
-        actions = self.transform.stack_actions(actions)
-        rewards = torch.sum(torch.from_numpy(np.stack(rewards, axis=0)[..., np.newaxis]).to(self.device), dim=1)
+        actions = self.transform.stack_actions(actions, self.seq_len)
+        rewards = torch.from_numpy(np.stack(rewards, axis=0)[..., np.newaxis]).to(self.device)[:, 1:, ...]
+        shape = (rewards.shape[0] * self.seq_len, ) + rewards.shape[2:]
+        rewards = rewards.reshape(shape)
 
         return {
             'obs': obs,
