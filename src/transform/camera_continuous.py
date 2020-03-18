@@ -80,6 +80,19 @@ class Transform(object):
                 noops[i]['nearbySmelt'] = self.nearbySmelt_mapping[output_dict['nearbySmelt'][i].item()]
         return noops
 
+    def preprocess_inventory(self, obs):
+        result = None
+        if 'inventory' in obs:
+            result = []
+            inventory = obs['inventory']
+            for k in inventory.keys():
+                item = []
+                for i in range(len(inventory[k]) - 1):
+                    item.append(inventory[k][i + 1] - inventory[k][i])
+                result.append(np.array(item))
+            result = np.argmax(np.stack(result, axis=0), axis=-1)
+        return result
+
     def preprocess_state(self, obs):
         canvas = Image.new(mode="L", size=(self.input_dim, self.input_dim))
         draw = ImageDraw.Draw(canvas)

@@ -174,6 +174,20 @@ class Transform(object):
 
         return np.stack(result, axis=0)
 
+    def preprocess_inventory(self, obs):
+        result = None
+        if 'inventory' in obs:
+            result = []
+            inventory = obs['inventory']
+            for k in inventory.keys():
+                item = []
+                for i in range(len(inventory[k]) - 1):
+                    item.append(inventory[k][i + 1] - inventory[k][i])
+                result.append(np.array(item))
+            result = np.stack(result, axis=0)
+            result = np.argmax(result, axis=0)
+        return result
+
     def normalize_state(self, obs):
         return obs.astype(np.float32) / 255.
 
