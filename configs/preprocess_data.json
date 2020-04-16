@@ -1,0 +1,5 @@
+{
+  "env": "MineRLObtainDiamondDense-v0",
+  "data_root": "/local00/bioinf/dinu/minerl/data",
+  "target_root": "/publicwork/dinu/remote/minerl-neurips-2019/video"
+}

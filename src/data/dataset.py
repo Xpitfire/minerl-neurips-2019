@@ -53,9 +53,10 @@ class DataGenerator(object):
 
         obs = torch.from_numpy(np.stack(states, axis=0))
         obs = obs.to(self.device)[:, :-1, ...]
-        inventory = torch.from_numpy(np.stack(inventory, axis=0)).to(self.device)
-        shape = (inventory.shape[0] * self.seq_len, ) + inventory.shape[2:]
-        inventory = inventory.reshape(shape)
+        if None not in inventory:
+            inventory = torch.from_numpy(np.stack(inventory, axis=0)).to(self.device)
+            shape = (inventory.shape[0] * self.seq_len, ) + inventory.shape[2:]
+            inventory = inventory.reshape(shape)
         actions = self.transform.stack_actions(actions, self.seq_len)
         rewards = torch.from_numpy(np.stack(rewards, axis=0)[..., np.newaxis]).to(self.device)[:, 1:, ...]
         shape = (rewards.shape[0] * self.seq_len, ) + rewards.shape[2:]

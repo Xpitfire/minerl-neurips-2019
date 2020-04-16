@@ -1,0 +1,18 @@
+{
+  "checkpoints_dir": "ckpts",
+  "input_channels": 4,
+  "input_dim": 64,
+  "seq_len": 32,
+  "lstm_hidden_dim": 128,
+  "lstm_layer_dim": 1,
+  "critic_hidden_dim": 128,
+  "critic_final_dim": 1,
+  "actor_hidden_dim": 128,
+  "actor_camera_final_dim": 13,
+  "actor_move_final_dim": 8,
+  "actor_craft_final_dim": 5,
+  "actor_equip_final_dim": 8,
+  "actor_nearbyCraft_final_dim": 8,
+  "actor_nearbySmelt_final_dim": 3,
+  "actor_place_final_dim": 7
+}
